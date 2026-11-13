@@ -1,15 +1,15 @@
 1.- En este proyecto usted deberá investigar sobre el desarrollo de un visor de **Material Particulado MP 2.5 um** utilizando **Lazarus Free Pascal** con generación de código compilado. La interfaces deben ser similar a las siguientes figuras: 
 
 
-![](Markdown/imagenes/Proyecto-#3.pdf-0001-02.png)
+![](./imagenes/Proyecto-#3.pdf-0001-02.png)
 
 
 
-![](Markdown/imagenes/Proyecto-#3.pdf-0001-03.png)
+![](./imagenes/Proyecto-#3.pdf-0001-03.png)
 
 
 
-![](Markdown/imagenes/Proyecto-#3.pdf-0001-04.png)
+![](./imagenes/Proyecto-#3.pdf-0001-04.png)
 
 
 ## **Observaciones:** 
