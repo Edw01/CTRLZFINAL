@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <Compiler Value="C:\lazarus\fpc\3.2.2\bin\x86_64-win64\fpc.exe" Date="1556502373"/>
-  <Params Value="-MObjFPC -Scghi -O1 -gw3 -gl -l -vewnhibq -Fic:\Users\axelp\Documents\GitHub\CTRLZFINAL\server_tcp\lib\x86_64-win64 -Fuc:\Users\axelp\Documents\GitHub\CTRLZFINAL\server_tcp\ -FUc:\Users\axelp\Documents\GitHub\CTRLZFINAL\server_tcp\lib\x86_64-win64\ -FEc:\Users\axelp\Documents\GitHub\CTRLZFINAL\server_tcp\ -oc:\Users\axelp\Documents\GitHub\CTRLZFINAL\server_tcp\servidor_tcp_aire.exe servidor_tcp_aire.lpr"/>
-</CONFIG>
