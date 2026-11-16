@@ -76,22 +76,26 @@ end;
 
 procedure TServidorRecepcionAire.InicializarBaseDeDatos;
 var
-  ConsultaCreacion: TSQLQuery;
-  DirectorioDB: string;
   RutaLibreriaDLL: string;
+  ConsultaVerificacion: TSQLQuery;
 begin
+  // Cargar el motor SQLite
   RutaLibreriaDLL := ExtractFilePath(ParamStr(0)) + 'sqlite3.dll';
   if FileExists(RutaLibreriaDLL) then
   begin
     SQLiteDefaultLibrary := RutaLibreriaDLL;
   end;
 
-  DirectorioDB := ExtractFileDir(FRutaBaseDatos);
-  if (DirectorioDB <> '') and (not DirectoryExists(DirectorioDB)) then
+  // Verificar que la base de datos haya sido creada previamente en HeidiSQL
+  if not FileExists(FRutaBaseDatos) then
   begin
-    ForceDirectories(DirectorioDB);
+    raise Exception.Create(
+      'No se encontro la base de datos "' + FRutaBaseDatos + '". ' +
+      'Debe crearla previamente en HeidiSQL segun lo solicitado en el punto 11 de la pauta.'
+    );
   end;
 
+  // Abrir la conexion con la base de datos existente
   FConexionSQLite := TSQLite3Connection.Create(nil);
   FTransaccionSQL := TSQLTransaction.Create(nil);
 
@@ -99,21 +103,23 @@ begin
   FConexionSQLite.DatabaseName := FRutaBaseDatos;
   FConexionSQLite.Open;
 
-  ConsultaCreacion := TSQLQuery.Create(nil);
+  // Verificar que la tabla "Aire" haya sido creada en HeidiSQL
+  ConsultaVerificacion := TSQLQuery.Create(nil);
   try
-    ConsultaCreacion.DataBase := FConexionSQLite;
-    ConsultaCreacion.Transaction := FTransaccionSQL;
-    ConsultaCreacion.SQL.Text :=
-      'CREATE TABLE IF NOT EXISTS Aire (' +
-      '  id INTEGER PRIMARY KEY AUTOINCREMENT, ' +
-      '  MP25 INTEGER NOT NULL, ' +
-      '  Fecha TEXT NOT NULL, ' +
-      '  Hora TEXT NOT NULL' +
-      ');';
-    ConsultaCreacion.ExecSQL;
-    FTransaccionSQL.Commit;
+    ConsultaVerificacion.DataBase := FConexionSQLite;
+    ConsultaVerificacion.Transaction := FTransaccionSQL;
+    ConsultaVerificacion.SQL.Text :=
+      'SELECT count(*) FROM sqlite_master WHERE type="table" AND name="Aire";';
+    ConsultaVerificacion.Open;
+    if (ConsultaVerificacion.EOF) or (ConsultaVerificacion.Fields[0].AsInteger = 0) then
+    begin
+      raise Exception.Create(
+        'La tabla "Aire" no existe en la base de datos "' + FRutaBaseDatos + '". ' +
+        'Debe crearla previamente en HeidiSQL ejecutando el script crear_tabla_aire.sql.'
+      );
+    end;
   finally
-    ConsultaCreacion.Free;
+    ConsultaVerificacion.Free;
   end;
 end;
 
@@ -231,7 +237,7 @@ end;
 procedure TServidorRecepcionAire.IniciarEscucha;
 begin
   WriteLn('================================================================================');
-  WriteLn('  SERVIDOR TCP/IP LAZARUS PASCAL (MODO CONSOLA) - PROYECTO #3 INFO1128');
+  WriteLn('  SERVIDOR TCP/IP LAZARUS PASCAL (MODO CONSOLA)');
   WriteLn('================================================================================');
   WriteLn('  Direccion IP   : 127.0.0.1');
   WriteLn('  Puerto TCP     : ', FPuertoEscucha);
@@ -250,6 +256,9 @@ var
   ServidorAire: TServidorRecepcionAire;
   RutaBaseDatosPorDefecto: string;
   PuertoConfigurado: Word;
+
+{$R *.res}
+
 begin
   PuertoConfigurado := 5000;
 

@@ -13,6 +13,7 @@
       <Title Value="Servidor TCP/IP SQLite Aire"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
+      <Icon Value="0"/>
     </General>
     <BuildModes>
       <Item Name="Default" Default="True"/>
@@ -48,4 +49,3 @@
     </Linking>
   </CompilerOptions>
 </CONFIG>
-

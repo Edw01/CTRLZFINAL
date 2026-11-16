@@ -3,15 +3,15 @@ object FormularioVisorMP25: TFormularioVisorMP25
   Height = 255
   Top = 180
   Width = 985
-  Caption = 'By Alberto Caro'
+  Caption = 'Material Particulado'
   ClientHeight = 255
   ClientWidth = 985
   Color = clBtnFace
   Position = poScreenCenter
   ShowHint = True
+  LCLVersion = '4.8.0.0'
   OnCreate = FormCreate
   OnDestroy = FormDestroy
-  LCLVersion = '4.8.0.0'
   object VisorGraficoMP25: TChart
     Left = 8
     Height = 240
@@ -24,7 +24,6 @@ object FormularioVisorMP25: TFormularioVisorMP25
         Intervals.MaxLength = 45
         Intervals.MinLength = 20
         Intervals.NiceSteps = '0.5'
-        Intervals.Options = [aipUseMaxLength, aipUseMinLength, aipUseNiceSteps]
         Marks.LabelBrush.Style = bsClear
         Marks.Range.Max = 200
         Marks.Range.UseMax = True
@@ -34,7 +33,6 @@ object FormularioVisorMP25: TFormularioVisorMP25
         Range.Min = -25
         Range.UseMax = True
         Range.UseMin = True
-        Title.Distance = 4
         Title.LabelFont.Height = -13
         Title.LabelFont.Name = 'Segoe UI'
         Title.LabelFont.Orientation = 900
@@ -46,11 +44,10 @@ object FormularioVisorMP25: TFormularioVisorMP25
       item
         Grid.Color = clBlack
         Grid.Visible = False
-        Alignment = calBottom
         Intervals.MaxLength = 30
-        Intervals.MinLength = 10
         Intervals.NiceSteps = '1'
         Intervals.Options = [aipUseMaxLength, aipUseMinLength, aipUseNiceSteps, aipInteger]
+        Alignment = calBottom
         Marks.LabelBrush.Style = bsClear
         Minors = <>
         Range.Max = 29
@@ -71,7 +68,6 @@ object FormularioVisorMP25: TFormularioVisorMP25
     Frame.Color = clBlack
     Legend.BackgroundBrush.Color = clWhite
     Legend.Frame.Color = clBlack
-    Legend.UseSidebar = True
     Legend.Visible = True
     Margins.Left = 0
     Margins.Top = 8
@@ -88,26 +84,18 @@ object FormularioVisorMP25: TFormularioVisorMP25
     Title.Visible = True
     OnBeforeDrawBackWall = VisorGraficoMP25BeforeDrawBackWall
     object SerieLineaMP25: TLineSeries
+      Title = 'MP 10 um'
       AxisIndexX = 1
       AxisIndexY = 0
-      Legend.Multiplicity = lmSingle
-      Title = 'MP 10 um'
       LinePen.Color = clRed
-      Marks.Clipped = True
       Marks.Distance = 10
-      Marks.Format = '%0:.0f'
+      Marks.Format = '%0:.9g'
       Marks.Frame.Color = clBlack
-      Marks.Frame.Visible = True
       Marks.LabelBrush.Color = clWhite
-      Marks.LabelBrush.Style = bsSolid
-      Marks.LinkPen.Color = clWhite
       Marks.Style = smsValue
       Pointer.Brush.Color = clBlue
-      Pointer.HorizSize = 4
       Pointer.OverrideColor = []
       Pointer.Pen.Color = clYellow
-      Pointer.Style = psRectangle
-      Pointer.VertSize = 4
       Pointer.Visible = True
       ShowPoints = True
     end
@@ -155,6 +143,17 @@ object FormularioVisorMP25: TFormularioVisorMP25
     Parity = pNone
     FlowControl = fcNone
     StopBits = sbOne
+    SynSer.Tag = 0
+    SynSer.Handle = -1
+    SynSer.RaiseExcept = False
+    SynSer.TestDSR = False
+    SynSer.TestCTS = False
+    SynSer.MaxLineLength = 0
+    SynSer.DeadlockTimeout = 30000
+    SynSer.LinuxLock = False
+    SynSer.ConvertLineEnd = False
+    SynSer.AtTimeout = 1000
+    SynSer.InterPacketTimeout = True
     Device = 'COM2'
     RcvLineCRLF = True
     OnRxData = PuertoSerialMP25RxData
@@ -163,7 +162,6 @@ object FormularioVisorMP25: TFormularioVisorMP25
   end
   object TemporizadorSimulacion: TTimer
     Enabled = False
-    Interval = 1000
     OnTimer = TemporizadorSimulacionTimer
     Left = 96
     Top = 16

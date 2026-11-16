@@ -1,5 +1,4 @@
 # ==============================================================================
-# Proyecto #3 - INFO1128 Interfaces Gráficas
 # Emulador de Sensor de Material Particulado MP 2.5 um
 # Transmite datos por puerto serial (9600 Bps, 8N1) con un sampling de 1 segundo
 # Distribución Normal(media = 80, desviación estándar = 5)
@@ -7,7 +6,6 @@
 
 import time
 import random
-import argparse
 import sys
 
 try:
@@ -20,7 +18,7 @@ except ImportError:
 
 def listar_puertos_disponibles():
     if not TIENE_PYSERIAL:
-        print("[AVISO] La librería 'pyserial' no está instalada. Ejecute: pip install pyserial")
+        print("La libreria 'pyserial' no esta instalada. Ejecute: pip install pyserial")
         return []
 
     puertos = serial.tools.list_ports.comports()
@@ -46,16 +44,16 @@ def generar_valor_mp25(media_normal=80.0, desviacion_estandar=5.0):
 
 def iniciar_transmision_serial(nombre_puerto, velocidad_baudios=9600, intervalo_segundos=1.0):
     if not TIENE_PYSERIAL:
-        print("[ERROR] No se encontró pyserial. Instálelo con: pip install pyserial")
+        print("Error, No se encontro pyserial. Instalelo con: pip install pyserial")
         sys.exit(1)
 
-    print("==============================================================")
-    print("  SENSOR PYTHON MP 2.5 um - DISTRIBUCIÓN NORMAL(80, 5)")
-    print("==============================================================")
+    print("--------------------------------------------------------------")
+    print("  SENSOR PYTHON MP 2.5 um - DISTRIBUCION NORMAL(80, 5)")
+    print("--------------------------------------------------------------")
     print(f"  Puerto Serial     : {nombre_puerto}")
-    print(f"  Configuración     : {velocidad_baudios} Bps, 8 bits, Paridad N, 1 bit parada (8N1)")
+    print(f"  Configuracion     : {velocidad_baudios} Bps, 8 bits, Paridad N, 1 bit parada (8N1)")
     print(f"  Sampling          : {intervalo_segundos} segundo(s)")
-    print("==============================================================")
+    print("--------------------------------------------------------------")
 
     try:
         conexion_serial = serial.Serial(
@@ -67,11 +65,10 @@ def iniciar_transmision_serial(nombre_puerto, velocidad_baudios=9600, intervalo_
             timeout=1.0
         )
     except Exception as error_apertura:
-        print(f"\n[ERROR] No se pudo abrir el puerto {nombre_puerto}: {error_apertura}")
+        print(f"\nError, no se pudo abrir el puerto {nombre_puerto}: {error_apertura}")
         puertos_actuales = listar_puertos_disponibles()
         print(f"Puertos detectados en el sistema: {puertos_actuales}")
-        print("Sugerencia: Verifique que el par de puertos virtuales (ej. com0com COM1<->COM2) esté activo")
-        print("o indique otro puerto con: python sensor_mp25.py --puerto COM2")
+        print("Sugerencia: Verifique que el par de puertos virtuales (ej. VSPE COM1 <-> COM2) este activo.")
         sys.exit(1)
 
     contador_muestras = 0
@@ -92,41 +89,24 @@ def iniciar_transmision_serial(nombre_puerto, velocidad_baudios=9600, intervalo_
             time.sleep(intervalo_segundos)
 
     except KeyboardInterrupt:
-        print("\n[INFO] Transmisión finalizada por el usuario.")
+        print("\n Transmision finalizada por el usuario.")
     finally:
         if conexion_serial.is_open:
             conexion_serial.close()
-            print(f"[INFO] Puerto {nombre_puerto} cerrado correctamente.")
+            print(f"Puerto {nombre_puerto} cerrado correctamente.")
 
 
 if __name__ == "__main__":
-    analizador_argumentos = argparse.ArgumentParser(
-        description="Emulador de Sensor MP 2.5 um por Puerto Serial (9600 Bps, 8N1)"
-    )
-    analizador_argumentos.add_argument(
-        "--puerto",
-        type=str,
-        default="COM1",
-        help="Nombre del puerto serial a utilizar (por defecto: COM1)"
-    )
-    analizador_argumentos.add_argument(
-        "--baudios",
-        type=int,
-        default=9600,
-        help="Velocidad en baudios (por defecto: 9600)"
-    )
-    analizador_argumentos.add_argument(
-        "--sampling",
-        type=float,
-        default=1.0,
-        help="Tiempo de muestreo en segundos (por defecto: 1.0)"
-    )
 
-    argumentos = analizador_argumentos.parse_args()
+
+#-----------------------------Customizacion de parametros de transmision serial
+    PUERTO_SERIAL = "COM1"
+    VELOCIDAD_BAUDIOS = 9600
+    SAMPLING_SEGUNDOS = 1.0
 
     iniciar_transmision_serial(
-        nombre_puerto=argumentos.puerto,
-        velocidad_baudios=argumentos.baudios,
-        intervalo_segundos=argumentos.sampling
+        nombre_puerto=PUERTO_SERIAL,
+        velocidad_baudios=VELOCIDAD_BAUDIOS,
+        intervalo_segundos=SAMPLING_SEGUNDOS
     )
 

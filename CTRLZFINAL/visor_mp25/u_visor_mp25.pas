@@ -95,14 +95,13 @@ procedure TFormularioVisorMP25.FormCreate(Sender: TObject);
 begin
   Randomize;
 
-  Caption := 'By Alberto Caro';
+  Caption := 'Material Particulado';
   Color := clBtnFace;
   ShowHint := True;
 
   FImagenFondoActual := TPicture.Create;
   FRutaCarpetaImagenes := ResolverRutaCarpetaImagenes;
 
-  // Comenzamos con img6.png (bosque) tal como aparece en la primera figura del PDF
   FIndiceFondoActual := 6;
   FEstadoGrillaActiva := False;
   FCantidadMuestrasRecibidas := 0;
@@ -244,7 +243,7 @@ begin
   SerieLineaMP25.LinePen.Style := psSolid;
   SerieLineaMP25.ShowLines := True;
 
-  // Propiedad Pointer (cuadrados azules con borde amarillo como en las figuras del PDF)
+  // Propiedad Pointer (cuadrados azules con borde amarillo)
   SerieLineaMP25.ShowPoints := True;
   SerieLineaMP25.Pointer.Visible := True;
   SerieLineaMP25.Pointer.Style := psRectangle;
@@ -298,7 +297,7 @@ var
   RutaIconoCamara: string;
   RutaIconoPaleta: string;
 begin
-  // Activacion de Hint en cada boton (Observacion #9 del PDF)
+
   BotonCapturarPantalla.Caption := 'Save';
   BotonCapturarPantalla.Hint := 'Capturar imagen del visor en captura.png';
   BotonCapturarPantalla.ShowHint := True;
@@ -314,15 +313,15 @@ begin
   VisorGraficoMP25.Hint := 'Visor de Material Particulado MP 2.5 um';
   VisorGraficoMP25.ShowHint := True;
 
-  // Cargar icono de camara fotografica (camara.png)
+
   RutaIconoCamara := FRutaCarpetaImagenes + 'camara.png';
   CargarIconoEnBoton(BotonCapturarPantalla, RutaIconoCamara);
 
-  // Cargar icono de paleta (pale.png)
+
   RutaIconoPaleta := FRutaCarpetaImagenes + 'pale.png';
   CargarIconoEnBoton(BotonCambiarFondo, RutaIconoPaleta);
 
-  // Cargar icono de grilla (f02.bmp)
+
   ActualizarIconoBotonGrilla;
 end;
 
@@ -351,7 +350,7 @@ end;
 
 procedure TFormularioVisorMP25.ConfigurarPuertoSerialLazSerial;
 begin
-  // Observaciones #3 y #4: LazSerial a 9.600 Bps, 8N1
+
   PuertoSerialMP25.BaudRate := br__9600;
   PuertoSerialMP25.DataBits := db8bits;
   PuertoSerialMP25.Parity := pNone;
@@ -381,7 +380,7 @@ begin
     end;
   end;
 
-  // Sampling de 1 segundo (1000 ms)
+  // Temporizador para auto-reintentar abrir el puerto serial si este se creo despues en VSPE
   TemporizadorSimulacion.Interval := 1000;
   TemporizadorSimulacion.Enabled := True;
 end;
@@ -390,21 +389,15 @@ function TFormularioVisorMP25.GenerarMuestraNormal80_5: Integer;
 var
   ValorNormal: Double;
 begin
-  // Observacion #5: Distribución Normal(80, 5)
+  // Distribuicion Normal
   ValorNormal := RandG(80.0, 5.0);
   Result := EnsureRange(Round(ValorNormal), 0, 200);
 end;
 
 procedure TFormularioVisorMP25.InicializarMuestrasPorDefecto;
-var
-  IndiceMuestra: Integer;
 begin
-  FCantidadMuestrasRecibidas := CANTIDAD_MUESTRAS_VISOR;
-  for IndiceMuestra := 0 to CANTIDAD_MUESTRAS_VISOR - 1 do
-  begin
-    FValoresMuestras[IndiceMuestra] := GenerarMuestraNormal80_5;
-  end;
-
+  // Inicializamos en cero muestras para esperar a que Python transmita
+  FCantidadMuestrasRecibidas := 0;
   RedibujarSerieEnVisor;
 end;
 
@@ -451,7 +444,7 @@ var
   SocketClienteTCP: TInetSocket;
   MensajeEnvio: string;
 begin
-  // Observacion #12: Enviar el MP25 recibido a un Server TCP/IP Lazarus Pascal mode consola
+  // Enviar el MP25 recibido a un Server TCP/IP Lazarus Pascal mode consola
   MensajeEnvio := IntToStr(ValorMP25) + LineEnding;
   try
     SocketClienteTCP := TInetSocket.Create(DIRECCION_IP_SERVIDOR, PUERTO_TCP_SERVIDOR, 250);
@@ -470,25 +463,54 @@ var
   DatosRecibidos: string;
   TextoLimpio: string;
   ValorMP25Leido: Integer;
+  IndiceSalto: Integer;
+  LineaIndividual: string;
 begin
   DatosRecibidos := PuertoSerialMP25.ReadData;
   TextoLimpio := Trim(DatosRecibidos);
+  if TextoLimpio = '' then
+  begin
+    Exit;
+  end;
 
+  // 1. TLazSerial con RcvLineCRLF = True devuelve la linea limpia directamente
   if TryStrToInt(TextoLimpio, ValorMP25Leido) then
   begin
-    // Si llegan datos reales por LazSerial desde el script de Python,
-    // desactivamos el generador interno para graficar unicamente el puerto serial
-    TemporizadorSimulacion.Enabled := False;
     RegistrarNuevaMuestraMP25(ValorMP25Leido);
+    Exit;
+  end;
+
+  // 2. Si vinieron tramas concatenadas o saltos residuales
+  FBufferRecepcionSerial := FBufferRecepcionSerial + DatosRecibidos;
+  while (Pos(#10, FBufferRecepcionSerial) > 0) or (Pos(#13, FBufferRecepcionSerial) > 0) do
+  begin
+    IndiceSalto := Pos(#10, FBufferRecepcionSerial);
+    if (IndiceSalto = 0) or ((Pos(#13, FBufferRecepcionSerial) > 0) and (Pos(#13, FBufferRecepcionSerial) < IndiceSalto)) then
+    begin
+      IndiceSalto := Pos(#13, FBufferRecepcionSerial);
+    end;
+
+    LineaIndividual := Copy(FBufferRecepcionSerial, 1, IndiceSalto - 1);
+    Delete(FBufferRecepcionSerial, 1, IndiceSalto);
+
+    TextoLimpio := Trim(LineaIndividual);
+    if (TextoLimpio <> '') and TryStrToInt(TextoLimpio, ValorMP25Leido) then
+    begin
+      RegistrarNuevaMuestraMP25(ValorMP25Leido);
+    end;
   end;
 end;
 
 procedure TFormularioVisorMP25.TemporizadorSimulacionTimer(Sender: TObject);
-var
-  MuestraSimulada: Integer;
 begin
-  MuestraSimulada := GenerarMuestraNormal80_5;
-  RegistrarNuevaMuestraMP25(MuestraSimulada);
+  // Solo reintentar abrir el puerto serial si no estaba activo (por ejemplo, si VSPE se inicio despues)
+  if Assigned(PuertoSerialMP25) and (not PuertoSerialMP25.Active) then
+  begin
+    try
+      PuertoSerialMP25.Open;
+    except
+    end;
+  end;
 end;
 
 procedure TFormularioVisorMP25.VisorGraficoMP25BeforeDrawBackWall(
@@ -522,7 +544,7 @@ var
   RutaArchivoCapturaLocal: string;
   RutaArchivoCapturaRaiz: string;
 begin
-  // Observacion #6: Boton "Camara Fotografica" -> realiza una captura -> captura.png
+  // Boton de la Camara -> realiza una captura -> captura.png
   DirectorioEjecutable := IncludeTrailingPathDelimiter(ExtractFilePath(Application.ExeName));
   RutaArchivoCapturaLocal := DirectorioEjecutable + 'captura.png';
   GuardarCapturaFormularioCompleto(RutaArchivoCapturaLocal);
@@ -536,7 +558,7 @@ end;
 
 procedure TFormularioVisorMP25.BotonAlternarGrillaClick(Sender: TObject);
 begin
-  // Observacion #7: Boton "On/Off" -> Activa/Desactiva la Grilla del visor
+  // Boton "On/Off" -> Activa/Desactiva la Grilla del visor
   FEstadoGrillaActiva := not FEstadoGrillaActiva;
   VisorGraficoMP25.LeftAxis.Grid.Visible := FEstadoGrillaActiva;
   VisorGraficoMP25.BottomAxis.Grid.Visible := FEstadoGrillaActiva;
@@ -545,7 +567,7 @@ end;
 
 procedure TFormularioVisorMP25.BotonCambiarFondoClick(Sender: TObject);
 begin
-  // Observacion #8: Boton de "Click" -> Cambia la figura de fondo (background) del visor
+  // Boton de "Click" -> Cambia la figura de fondo (background) del visor
   Inc(FIndiceFondoActual);
   if FIndiceFondoActual > TOTAL_IMAGENES_FONDO then
   begin
